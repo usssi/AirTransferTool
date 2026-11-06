@@ -9,6 +9,7 @@ import sys
 import threading
 import time
 import socket
+from pathlib import Path
 import webview
 from app import refresh_hotspot_info
 
@@ -39,7 +40,13 @@ def main():
     # 3. Espera a que el servidor Flask esté listo
     wait_for_server()
 
-    # 4. Abre la ventana nativa con pywebview
+    # 4. Abre la ventana nativa con pywebview y el icono personalizado
+    base_dir = Path(getattr(sys, '_MEIPASS', Path(__file__).parent))
+    icon_candidate = base_dir / "static" / "icon.ico"
+    if not icon_candidate.exists():
+        icon_candidate = Path(__file__).parent / "icon.ico"
+    icon_arg = str(icon_candidate.resolve()) if icon_candidate.exists() else None
+
     webview.create_window(
         title="AirTransfer",
         url="http://localhost:8080",
@@ -49,7 +56,7 @@ def main():
         resizable=True,
         text_select=False,
     )
-    webview.start(debug=False)
+    webview.start(debug=False, icon=icon_arg)
 
 if __name__ == "__main__":
     main()

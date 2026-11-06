@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AirTransfer</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='icon.svg') }}" />
+  <link rel="alternate icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}" />
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}" />
   <style>
     /* ------------------------------------------------------------------ */
     /* Variables & Reset                                                  */
@@ -65,10 +68,18 @@
     .header-left { display: flex; align-items: center; gap: 14px; }
 
     .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
       font-size: 15px;
       font-weight: 600;
       letter-spacing: -0.3px;
       color: var(--text);
+    }
+    .logo img {
+      width: 22px;
+      height: 22px;
+      display: block;
     }
 
     .badge-status {
@@ -722,7 +733,10 @@
   <!-- ================================================================== -->
   <header>
     <div class="header-left">
-      <span class="logo">AirTransfer</span>
+      <span class="logo">
+        <img src="{{ url_for('static', filename='icon.svg') }}" alt="AirTransfer logo" width="22" height="22" />
+        AirTransfer
+      </span>
       <span class="badge-status {% if hotspot_on %}on{% endif %}">
         <span class="dot"></span>
         {% if hotspot_on %}Network Active{% else %}Network Offline{% endif %}

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="wireGlobe" x1="4" y1="4" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Boundary -->
+  <circle cx="32" cy="32" r="27" stroke="url(#wireGlobe)" stroke-width="2.75"/>
+
+  <!-- Vertical Meridians -->
+  <line x1="32" y1="5" x2="32" y2="59" stroke="url(#wireGlobe)" stroke-width="2"/>
+  <ellipse cx="32" cy="32" rx="14.5" ry="27" stroke="url(#wireGlobe)" stroke-width="2"/>
+
+  <!-- Equator & Latitudes -->
+  <line x1="5" y1="32" x2="59" y2="32" stroke="url(#wireGlobe)" stroke-width="2"/>
+  <path d="M 9.5 20 C 16 24.5, 48 24.5, 54.5 20" stroke="url(#wireGlobe)" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M 9.5 44 C 16 39.5, 48 39.5, 54.5 44" stroke="url(#wireGlobe)" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

@@ -12,7 +12,8 @@ cmd = [
     "--noconfirm",
     "--onedir",               # carpeta única (portable)
     "--windowed",             # sin consola visible
-    "--name", "AirTransferTool",
+    "--icon", "icon.ico",
+    "--name", "AirTransfer",
     "--add-data", "templates;templates",
     "--add-data", "static;static",
     "--collect-all", "webview",

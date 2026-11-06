@@ -20,7 +20,7 @@ Removes the friction of transferring photos, videos, and documents between PC an
    ```
    dist\AirTransferTool\
    ```
-2. Double-click `AirTransferTool.exe`:
+2. Double-click `AirTransfer.exe`:
    - Silently enables the Windows Mobile Hotspot in the background.
    - Launches the native desktop app window (no console window or browser address bars).
 3. In the **QR · Connect** tab:
