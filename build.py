@@ -17,6 +17,7 @@ cmd = [
     "--add-data", "templates;templates",
     "--add-data", "static;static",
     "--collect-all", "webview",
+    "--collect-all", "winsdk",
     "--hidden-import", "hotspot",
     "--hidden-import", "flask",
     "--hidden-import", "jinja2",
@@ -26,4 +27,4 @@ cmd = [
 
 print("Construyendo .exe con PyInstaller y pywebview...")
 subprocess.run(cmd, check=True)
-print("\nListo. El ejecutable está en: dist/AirTransferTool/AirTransferTool.exe")
+print("\nListo. El ejecutable está en: dist/AirTransfer/AirTransfer.exe")

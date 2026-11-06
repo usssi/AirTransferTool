@@ -55,6 +55,6 @@ py build.py
 The app is built around 4 simple, transparent components:
 
 1. **`launcher.py`**: Activates hotspot in background, starts the local Flask server on port 8080, and opens the native desktop window (`pywebview`).
-2. **`hotspot.py`**: Communicates with the native Windows Runtime (`NetworkOperatorTetheringManager`) via PowerShell to turn on mobile hotspot and read the Wi-Fi SSID and password dynamically.
+2. **`hotspot.py`**: Uses the official Microsoft Windows SDK (`winsdk`) directly in Python to turn on the mobile hotspot and read the Wi-Fi SSID and password natively without spawning PowerShell or external processes.
 3. **`app.py`**: Minimal Flask backend handling file uploads, downloads, and moving files directly into your Windows `Downloads` folder.
 4. **`templates/index.html`**: Clean, dark-mode web interface with bundled offline QR generation for camera pairing.

@@ -1,65 +1,37 @@
 """
 hotspot.py — Control nativo de la Zona de cobertura móvil de Windows.
-Usa la API WinRT (Windows.Networking.NetworkOperators.NetworkOperatorTetheringManager)
-a través de PowerShell para:
-1. Activar la zona de cobertura móvil automáticamente si está apagada.
-2. Obtener el SSID y la contraseña reales configurados en Windows.
+Usa la API oficial de Windows SDK (winsdk) directamente en Python:
+1. Activa la zona de cobertura móvil si está apagada.
+2. Lee el SSID y la contraseña reales configurados en Windows.
+Sin procesos externos, sin PowerShell y sin comandos que activen alertas de antivirus.
 """
 
-import subprocess
-import json
+import asyncio
 
-PS_HOTSPOT_SCRIPT = """
-Add-Type -AssemblyName System.Runtime.WindowsRuntime
-$asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | ? { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1' })[0]
-function Await($WinRtTask, $ResultType) {
-    $asTask = $asTaskGeneric.MakeGenericMethod($ResultType)
-    $netTask = $asTask.Invoke($null, @($WinRtTask))
-    $netTask.Wait(-1) | Out-Null
-    $netTask.Result
-}
-try {
-    $connectionProfile = [Windows.Networking.Connectivity.NetworkInformation, Windows.Networking.Connectivity, ContentType = WindowsRuntime]::GetInternetConnectionProfile()
-    if (-not $connectionProfile) {
-        throw "No active connection profile"
-    }
-    $tetheringManager = [Windows.Networking.NetworkOperators.NetworkOperatorTetheringManager, Windows.Networking.NetworkOperators, ContentType = WindowsRuntime]::CreateFromConnectionProfile($connectionProfile)
-    $config = $tetheringManager.GetCurrentAccessPointConfiguration()
-    if ($tetheringManager.TetheringOperationalState -ne 'On') {
-        Await ($tetheringManager.StartTetheringAsync()) ([Windows.Networking.NetworkOperators.NetworkOperatorTetheringOperationResult]) | Out-Null
-    }
-    [PSCustomObject]@{
-        Ssid = $config.Ssid
-        Passphrase = $config.Passphrase
-        State = $tetheringManager.TetheringOperationalState.ToString()
-    } | ConvertTo-Json -Compress
-} catch {
-    [PSCustomObject]@{
-        Ssid = ""
-        Passphrase = ""
-        State = "Off"
-    } | ConvertTo-Json -Compress
-}
-"""
+async def _activate_hotspot_async():
+    try:
+        import winsdk.windows.networking.connectivity as conn
+        import winsdk.windows.networking.networkoperators as tether
+
+        profile = conn.NetworkInformation.get_internet_connection_profile()
+        if not profile:
+            return "", "", False
+
+        mgr = tether.NetworkOperatorTetheringManager.create_from_connection_profile(profile)
+        if mgr.tethering_operational_state != tether.TetheringOperationalState.ON:
+            await mgr.start_tethering_async()
+
+        config = mgr.get_current_access_point_configuration()
+        is_on = (mgr.tethering_operational_state == tether.TetheringOperationalState.ON)
+        return config.ssid or "", config.passphrase or "", is_on
+    except Exception:
+        return "", "", False
 
 def get_hotspot_status_and_activate():
     """
     Enciende la zona de cobertura móvil y devuelve (ssid, passphrase, is_on).
     """
     try:
-        proc = subprocess.run(
-            [
-                "powershell", "-NoProfile", "-NonInteractive",
-                "-ExecutionPolicy", "Bypass", "-Command", PS_HOTSPOT_SCRIPT
-            ],
-            capture_output=True,
-            text=True,
-            timeout=10,
-            creationflags=subprocess.CREATE_NO_WINDOW
-        )
-        data = json.loads(proc.stdout.strip())
-        is_on = data.get("State") == "On"
-        return data.get("Ssid", ""), data.get("Passphrase", ""), is_on
+        return asyncio.run(_activate_hotspot_async())
     except Exception:
         return "", "", False
-
