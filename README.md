@@ -1,59 +1,60 @@
-# AirTransferTool
+# AirTransfer
 
-A lightweight, portable tool to transfer files between your Windows PC and your iPhone over a local Wi-Fi connection powered by Windows Mobile Hotspot.
+A lightweight, cable-free file transfer tool between your Windows PC and iPhone over a local Wi-Fi hotspot. No iTunes, cables, third-party clouds, or internet connection required.
+
+[![Download Portable Executable](https://img.shields.io/badge/Download-v1.0.0_Portable_(.zip)-blue?style=for-the-badge&logo=windows)](https://github.com/usssi/AirTransferTool/releases/tag/v1.0.0)
+
+👉 **[Download the latest release (v1.0.0)](https://github.com/usssi/AirTransferTool/releases/tag/v1.0.0)**
 
 ---
 
 ## What Problem It Solves
 
-Removes the friction of transferring photos, videos, and documents between PC and iPhone:
-- No USB cables or iTunes required.
-- No uploading to third-party clouds or needing an active Internet connection.
-- Automatically enables the Windows Mobile Hotspot silently in the background via native WinRT APIs without manual configuration prompts.
-- Scan and connect: connects the iPhone via QR and opens the minimalist web interface directly in Safari or any mobile browser.
+- **Zero cables:** No Lightning/USB-C cables or iTunes sync hassles.
+- **100% Offline:** Transfers stay strictly on your local Wi-Fi network without touching external servers or cloud accounts.
+- **Zero setup:** Automatically turns on Windows Mobile Hotspot in the background using native Windows APIs.
+- **Scan & Go:** Connect your iPhone and open the web portal instantly via QR codes.
 
 ---
 
-## How to Use (.exe Portable)
+## How to Use (Portable .exe)
 
-1. Open the folder:
-   ```
-   dist\AirTransferTool\
-   ```
-2. Double-click `AirTransfer.exe`:
-   - Silently enables the Windows Mobile Hotspot in the background.
-   - Launches the native desktop app window (no console window or browser address bars).
-3. In the **QR · Connect** tab:
-   - Scan the **first QR code** with your iPhone camera to connect to the Wi-Fi network.
-   - Scan the **second QR code** to open the web app on your phone.
-4. **Upload / Download**:
-   - From iPhone: tap to upload files to the server.
-   - From PC: click `Move to Downloads` to transfer files directly to your PC's `Downloads` folder.
-   - Tap the trash icon to delete files (processed asynchronously via Fetch without insecure form warnings).
+1. **Download & Extract:**
+   Download the [v1.0.0 release zip](https://github.com/usssi/AirTransferTool/releases/tag/v1.0.0) and extract it anywhere on your PC.
 
-*Note:* You can move the entire `dist\AirTransferTool\` folder anywhere (USB drive, Desktop, etc.). The `uploads/` directory is created automatically next to the executable.
+2. **Run:**
+   Double-click `AirTransfer.exe` (it silently turns on the Wi-Fi hotspot and opens the app window).
+
+3. **Connect iPhone:**
+   - Scan the **first QR code** with your iPhone camera to join the Wi-Fi.
+   - Scan the **second QR code** to open the transfer portal in Safari.
+
+4. **Transfer:**
+   - **From iPhone:** Tap to select and upload photos, videos, or documents.
+   - **On PC:** Click `Move to Downloads` on any file to send it straight to your Windows Downloads folder.
 
 ---
 
-## Development & Building
+## Development & Building from Source
 
 ```bash
 # 1. Install dependencies
 py -m pip install -r requirements.txt
 
-# 2. Run in development mode
+# 2. Run in dev mode
 py launcher.py
 
-# 3. Build executable
+# 3. Compile portable .exe
 py build.py
 ```
 
 ---
 
-## Architecture
+## Conceptual Architecture
 
-- **`hotspot.py`:** Manages Windows Mobile Hotspot via the native Windows Runtime API (`Windows.Networking.NetworkOperators.NetworkOperatorTetheringManager`) in PowerShell silently without popups. Forces activation and reads configured SSID and password for QR generation.
-- **`launcher.py`:** Main entry point. Starts hotspot activation, launches Flask server, and opens the native `pywebview` window.
-- **`app.py`:** Flask backend server handling file uploads (`/upload`), downloads (`/download/<filename>`), deletions (`/delete/<filename>`), and previews (`/preview/<filename>`).
-- **`templates/index.html`:** Clean, responsive, monochrome UI in English with asynchronous Fetch actions.
-- **`static/qrcode.min.js`:** Local QR code generator bundled for offline usage.
+The app is built around 4 simple, transparent components:
+
+1. **`launcher.py`**: Activates hotspot in background, starts the local Flask server on port 8080, and opens the native desktop window (`pywebview`).
+2. **`hotspot.py`**: Communicates with the native Windows Runtime (`NetworkOperatorTetheringManager`) via PowerShell to turn on mobile hotspot and read the Wi-Fi SSID and password dynamically.
+3. **`app.py`**: Minimal Flask backend handling file uploads, downloads, and moving files directly into your Windows `Downloads` folder.
+4. **`templates/index.html`**: Clean, dark-mode web interface with bundled offline QR generation for camera pairing.
