@@ -1,0 +1,23 @@
+# Compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribución y ejecutables
+build/
+dist/
+*.spec
+
+# Datos transferidos por el usuario
+uploads/
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Editores y VS Code
+.vs/
+.vscode/
+.idea/
+

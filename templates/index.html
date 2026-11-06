@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AirTransfer</title>
+  <style>
+    /* ------------------------------------------------------------------ */
+    /* Variables & Reset                                                  */
+    /* ------------------------------------------------------------------ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0c0c0c;
+      --surface:   #161616;
+      --surface2:  #1f1f1f;
+      --border:    #2c2c2c;
+      --border2:   #3a3a3a;
+      --text:      #f0f0f0;
+      --text-2:    #a0a0a0;
+      --text-3:    #606060;
+      --danger:    #e05252;
+      --success:   #52c97a;
+      --radius:    8px;
+      --radius-sm: 5px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --font-mono: 'SF Mono', 'Consolas', 'Courier New', monospace;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Layout                                                             */
+    /* ------------------------------------------------------------------ */
+    .shell {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 100vh;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Header                                                             */
+    /* ------------------------------------------------------------------ */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0 16px;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 14px; }
+
+    .logo {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+
+    .badge-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-2);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+    }
+    .badge-status .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--text-3);
+    }
+    .badge-status.on .dot { background: var(--success); }
+    .badge-status.on { color: var(--text); }
+
+    .file-count {
+      font-size: 12px;
+      color: var(--text-3);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-2);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      cursor: pointer;
+      transition: border-color .15s, color .15s, background .15s;
+    }
+    .btn-pill:hover {
+      border-color: var(--border2);
+      color: var(--text);
+      background: var(--surface2);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Upload Zone                                                        */
+    /* ------------------------------------------------------------------ */
+    .upload-section {
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .upload-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: 1px dashed var(--border2);
+      border-radius: var(--radius);
+      padding: 36px 24px;
+      cursor: pointer;
+      transition: padding .2s, border-color .2s, background .2s;
+      text-align: center;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--text-2);
+      background: rgba(255,255,255,.025);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+
+    /* Small/Compressed Upload Button */
+    .upload-zone.compressed {
+      display: inline-flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      align-self: flex-start;
+      width: auto;
+      min-width: 130px;
+      padding: 6px 14px;
+      gap: 7px;
+      border-style: solid;
+      border-color: var(--border2);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+    }
+    .upload-zone.compressed:hover {
+      border-color: var(--text-2);
+      background: var(--surface2);
+    }
+    .upload-zone.compressed .upload-icon {
+      width: 18px;
+      height: 18px;
+      font-size: 11px;
+      border-width: 1px;
+    }
+    .upload-zone.compressed .upload-text-group .upload-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .upload-zone.compressed .upload-text-group .upload-sub {
+      display: none;
+    }
+
+    .upload-icon {
+      width: 36px; height: 36px;
+      border: 1.5px solid var(--border2);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-2);
+      font-size: 16px;
+      transition: width .2s, height .2s, font-size .2s;
+    }
+
+    .upload-text-group { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .upload-zone.compressed .upload-text-group { align-items: flex-start; }
+    .upload-title { font-size: 14px; font-weight: 500; color: var(--text); }
+    .upload-sub { font-size: 12px; color: var(--text-3); }
+
+    /* Grouped Uploads Section */
+    .upload-group {
+      margin-top: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color .15s;
+    }
+    .upload-group-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      cursor: pointer;
+      user-select: none;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+    .upload-group-header:hover {
+      background: var(--surface2);
+    }
+    .upload-group.collapsed .upload-group-header {
+      border-bottom: none;
+    }
+    .upload-group-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .upload-group-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-toggle-arrow {
+      background: none;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      color: var(--text-2);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-toggle-arrow:hover {
+      border-color: var(--text);
+      color: var(--text);
+    }
+    #arrow-icon {
+      transition: transform 0.25s ease;
+    }
+    .upload-group.collapsed #arrow-icon {
+      transform: rotate(180deg);
+    }
+    .upload-group.collapsed .upload-cards-list {
+      display: none;
+    }
+    .upload-group .upload-cards-list {
+      padding: 12px;
+      margin-top: 0;
+    }
+
+    /* Upload progress cards list */
+    .upload-cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .upload-progress-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .upload-progress-card.done-card {
+      border-color: rgba(82,201,122,.3);
+    }
+    .upload-progress-card.error-card {
+      border-color: rgba(224,82,82,.3);
+    }
+    .upload-progress-card.cancelled-card {
+      opacity: 0.5;
+    }
+
+    .upload-progress-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+
+    .upload-progress-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      min-width: 0;
+    }
+    .upload-progress-title .file-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .upload-spinner {
+      width: 13px;
+      height: 13px;
+      border: 2px solid var(--border2);
+      border-top-color: var(--text);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .upload-status-icon {
+      flex-shrink: 0;
+      font-size: 13px;
+    }
+
+    .btn-cancel {
+      border: 1px solid rgba(224,82,82,.4);
+      color: var(--danger);
+      font-size: 11px;
+      padding: 4px 11px;
+      background: rgba(224,82,82,.04);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background .15s, border-color .15s;
+    }
+    .btn-cancel:hover {
+      background: rgba(224,82,82,.14);
+      border-color: var(--danger);
+    }
+    .btn-cancel:disabled {
+      opacity: 0.3;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .progress-bar-wrap {
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 7px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--text);
+      width: 0%;
+      transition: width 0.12s linear;
+    }
+    .progress-bar-fill.success { background: var(--success); }
+    .progress-bar-fill.error   { background: var(--danger); }
+
+    .upload-progress-meta {
+      font-size: 11px;
+      color: var(--text-2);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Section header                                                     */
+    /* ------------------------------------------------------------------ */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-3);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* File list                                                          */
+    /* ------------------------------------------------------------------ */
+    .file-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      transition: border-color .15s, background .15s;
+    }
+    .file-item:hover {
+      border-color: var(--border2);
+      background: var(--surface2);
+    }
+
+    /* Thumbnail */
+    .file-thumb {
+      width: 44px; height: 44px;
+      flex-shrink: 0;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .file-thumb:hover { border-color: var(--border2); }
+    .file-thumb img, .file-thumb video { width: 100%; height: 100%; object-fit: cover; }
+
+    .ext-badge {
+      font-size: 9px;
+      font-family: var(--font-mono);
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* File info */
+    .file-info { flex: 1; min-width: 0; }
+    .file-name {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text);
+    }
+    .file-meta {
+      display: flex;
+      gap: 10px;
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--text-3);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Actions */
+    .file-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      background: none;
+      color: var(--text-2);
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 7px 13px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: border-color .15s, color .15s, background .15s;
+    }
+    .btn:hover {
+      border-color: var(--text-2);
+      color: var(--text);
+      background: rgba(255,255,255,.05);
+    }
+    .btn-danger {
+      color: var(--danger);
+      border: 1px solid rgba(224,82,82,.3);
+      background: rgba(224,82,82,.04);
+      padding: 7px 11px;
+    }
+    .btn-danger:hover {
+      border-color: var(--danger);
+      background: rgba(224,82,82,.14);
+      color: #ff6b6b;
+    }
+
+    .btn-refresh {
+      font-size: 11px;
+      padding: 5px 10px;
+      color: var(--text-3);
+      border-color: var(--border);
+    }
+    .btn-refresh:hover {
+      color: var(--text);
+      border-color: var(--border2);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Empty state                                                        */
+    /* ------------------------------------------------------------------ */
+    .empty {
+      text-align: center;
+      padding: 60px 0;
+      color: var(--text-3);
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .empty-icon {
+      color: var(--text-3);
+      margin-bottom: 14px;
+      opacity: 0.6;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* QR Panel                                                           */
+    /* ------------------------------------------------------------------ */
+    .qr-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      width: 100%;
+    }
+    @media (max-width: 520px) { .qr-grid { grid-template-columns: 1fr; } }
+
+    .qr-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    .qr-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-3);
+    }
+
+    .qr-canvas-wrap {
+      background: #ffffff;
+      border-radius: var(--radius-sm);
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 156px;
+      height: 156px;
+      box-sizing: border-box;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .qr-canvas-wrap canvas,
+    .qr-canvas-wrap img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .qr-meta {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-2);
+      line-height: 1.5;
+      word-break: break-all;
+      width: 100%;
+    }
+    .qr-meta strong {
+      color: var(--text);
+      display: block;
+      font-size: 12px;
+      word-break: break-all;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* QR Pop-up Modal                                                    */
+    /* ------------------------------------------------------------------ */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 120;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px 24px;
+      max-width: 520px;
+      width: min(520px, 94vw);
+      position: relative;
+      box-sizing: border-box;
+    }
+    .modal-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .modal-card-close {
+      background: none;
+      border: none;
+      color: var(--text-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+      line-height: 1;
+      transition: color .15s;
+    }
+    .modal-card-close:hover { color: var(--text); }
+
+    /* ------------------------------------------------------------------ */
+    /* Modal preview                                                      */
+    /* ------------------------------------------------------------------ */
+    #modal {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.88);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    #modal.open { display: flex; }
+
+    #modal-inner {
+      position: relative;
+      max-width: 92vw;
+      max-height: 92vh;
+    }
+    #modal-inner img, #modal-inner video {
+      max-width: 90vw;
+      max-height: 88vh;
+      border-radius: var(--radius);
+      display: block;
+    }
+    #modal-close {
+      position: absolute;
+      top: -36px; right: 0;
+      background: none; border: none;
+      color: var(--text-2); cursor: pointer;
+      font-size: 20px;
+      transition: color .15s;
+    }
+    #modal-close:hover { color: var(--text); }
+
+    /* ------------------------------------------------------------------ */
+    /* Mobile tweaks                                                      */
+    /* ------------------------------------------------------------------ */
+    {% if mobile %}
+    .pc-only { display: none !important; }
+    {% endif %}
+    @media (max-width: 600px) {
+      .pc-only { display: none !important; }
+    }
+    {% if mobile %}
+    .file-item {
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 12px;
+      padding: 14px;
+      align-items: center;
+    }
+    .file-thumb {
+      width: 52px;
+      height: 52px;
+    }
+    .file-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+      margin-top: 2px;
+    }
+    .file-actions a.btn {
+      flex: 1;
+      height: 42px;
+      font-size: 13px;
+      justify-content: center;
+    }
+    .file-actions .btn-danger {
+      height: 42px;
+      padding: 0 16px;
+    }
+    {% endif %}
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ================================================================== -->
+  <!-- HEADER                                                             -->
+  <!-- ================================================================== -->
+  <header>
+    <div class="header-left">
+      <span class="logo">AirTransfer</span>
+      <span class="badge-status {% if hotspot_on %}on{% endif %}">
+        <span class="dot"></span>
+        {% if hotspot_on %}Network Active{% else %}Network Offline{% endif %}
+      </span>
+    </div>
+    <div class="header-right">
+      <span class="file-count">{{ files|length }} file{{ 's' if files|length != 1 else '' }}</span>
+      {% if not mobile %}
+      <button type="button" class="btn-pill pc-only" onclick="openQrModal()" title="Show network QR codes">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        <span>QR · Connect</span>
+      </button>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- ================================================================== -->
+  <!-- MAIN                                                               -->
+  <!-- ================================================================== -->
+  <main style="padding: 24px 0 32px;">
+
+    <!-- Upload -->
+    <div class="upload-section">
+      <div class="upload-zone {% if files|length > 0 %}compressed{% endif %}" id="drop-zone">
+        <div class="upload-icon">&#8593;</div>
+        <div class="upload-text-group">
+          <div class="upload-title" id="upload-title">{% if files|length > 0 %}+ Upload files{% else %}Upload files{% endif %}</div>
+          <div class="upload-sub" id="upload-sub">Click or drag &amp; drop files here</div>
+        </div>
+        <input type="file" name="files" multiple id="file-input" />
+      </div>
+
+      <!-- Grouped active uploads section -->
+      <div id="upload-group" class="upload-group" style="display: none;">
+        <div class="upload-group-header" onclick="toggleUploadsGroup(event)">
+          <div class="upload-group-title">
+            <span class="upload-spinner" style="margin-right: 2px;"></span>
+            <span id="upload-count-label">Active uploads (1)</span>
+          </div>
+          <div class="upload-group-actions" onclick="event.stopPropagation()">
+            <button type="button" class="btn btn-danger" style="font-size: 11px; padding: 3px 9px;" onclick="cancelAllUploads()">Cancel all</button>
+            <button type="button" class="btn-toggle-arrow" id="btn-toggle-uploads" onclick="toggleUploadsGroup(event)" title="Toggle uploads visibility">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="arrow-icon">
+                <polyline points="18 15 12 9 6 15"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="upload-cards-list" id="upload-cards-list"></div>
+      </div>
+    </div>
+
+    <!-- List -->
+    <div id="dynamic-file-section">
+    {% if files %}
+    <div class="section-header">
+      <span class="section-title">Server files</span>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <button type="button" class="btn btn-refresh pc-only" onclick="openFolder()" title="Open uploads folder in Explorer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Open folder
+        </button>
+        <button type="button" class="btn btn-refresh" onclick="location.reload()" title="Refresh list">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+          Refresh
+        </button>
+        <button type="button" class="btn btn-danger" style="font-size: 11px; padding: 5px 10px;" onclick="deleteAllFiles()" title="Delete all uploaded files">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          Delete all
+        </button>
+      </div>
+    </div>
+    <div class="file-list">
+      {% for f in files %}
+      <div class="file-item">
+
+        <div class="file-thumb" onclick="openPreview('{{ f.name }}', '{{ f.ext }}')">
+          {% if f.ext in ['jpg','jpeg','png','gif','webp','bmp','svg'] %}
+            <img src="/preview/{{ f.name }}" loading="lazy" alt="{{ f.name }}" />
+          {% elif f.ext in ['mp4','webm','mov','mkv','avi'] %}
+            <video src="/preview/{{ f.name }}#t=0.5" muted preload="metadata"></video>
+          {% else %}
+            <span class="ext-badge">{{ f.ext if f.ext else '—' }}</span>
+          {% endif %}
+        </div>
+
+        <div class="file-info">
+          <div class="file-name" title="{{ f.name }}">{{ f.name }}</div>
+          <div class="file-meta">
+            <span>{{ f.size_str }}</span>
+            <span>{{ f.ext.upper() if f.ext else 'File' }}</span>
+          </div>
+        </div>
+
+        <div class="file-actions">
+          <a href="/download/{{ f.name }}" class="btn">
+            {% if mobile %}↓ Download{% else %}↓ Move to Downloads{% endif %}
+          </a>
+          <button type="button" class="btn btn-danger" onclick="deleteFile('{{ f.name }}')" title="Delete file">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+          <line x1="12" y1="22.08" x2="12" y2="12"></line>
+        </svg>
+      </div>
+      <div>No files on the server</div>
+      <div style="display: flex; gap: 6px; align-items: center; margin-top: 14px;">
+        <button type="button" class="btn btn-refresh pc-only" onclick="openFolder()" title="Open uploads folder in Explorer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Open folder
+        </button>
+        <button type="button" class="btn btn-refresh" onclick="location.reload()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+          Refresh list
+        </button>
+      </div>
+    </div>
+    {% endif %}
+    </div><!-- /#dynamic-file-section -->
+
+  </main>
+</div>
+
+{% if not mobile %}
+<!-- ================================================================== -->
+<!-- QR POPUP MODAL                                                     -->
+<!-- ================================================================== -->
+<div id="qr-modal" class="modal-backdrop" onclick="closeQrModal()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-card-header">
+      <span style="font-size: 13px; font-weight: 600; color: var(--text);">Connect iPhone</span>
+      <button type="button" class="modal-card-close" onclick="closeQrModal()">✕</button>
+    </div>
+    <div class="qr-grid">
+      <div class="qr-card">
+        <span class="qr-label">Connect to network</span>
+        <div class="qr-canvas-wrap" id="qr-wifi"></div>
+        <div class="qr-meta">
+          <strong>{{ ssid }}</strong>
+          Scan with iPhone camera
+        </div>
+      </div>
+      <div class="qr-card">
+        <span class="qr-label">Open app</span>
+        <div class="qr-canvas-wrap" id="qr-app"></div>
+        <div class="qr-meta">
+          <strong>{{ app_url }}</strong>
+          Once connected to WiFi
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+  </main>
+</div>
+
+<!-- ================================================================== -->
+<!-- MODAL PREVIEW                                                      -->
+<!-- ================================================================== -->
+<div id="modal" onclick="closeModal()">
+  <div id="modal-inner" onclick="event.stopPropagation()">
+    <button id="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- QR library (local) -->
+{% if not mobile %}
+<script src="/static/qrcode.min.js"></script>
+{% endif %}
+
+<script>
+// ---- QR Modal Popup ----
+function openQrModal() {
+  const modal = document.getElementById('qr-modal');
+  if (modal) modal.classList.add('open');
+}
+function closeQrModal() {
+  const modal = document.getElementById('qr-modal');
+  if (modal) modal.classList.remove('open');
+}
+
+// ---- Toggle Active Uploads Group ----
+function toggleUploadsGroup(e) {
+  if (e) e.stopPropagation();
+  const group = document.getElementById('upload-group');
+  if (group) group.classList.toggle('collapsed');
+}
+
+// ---- Drag & Drop & File Input ----
+const dropZone  = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+if (dropZone) {
+  ['dragenter','dragover'].forEach(e =>
+    dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.add('drag-over'); })
+  );
+  ['dragleave','dragend'].forEach(e =>
+    dropZone.addEventListener(e, () => dropZone.classList.remove('drag-over'))
+  );
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) enqueueFiles(Array.from(e.dataTransfer.files));
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) {
+      enqueueFiles(Array.from(fileInput.files));
+      // Reset input so the same file can be selected again later
+      fileInput.value = '';
+    }
+  });
+}
+
+// ---- Per-file upload engine ----
+// Each File object gets its own card and its own XHR. Cards are independent.
+// New selections always append to the queue; they never cancel ongoing uploads.
+
+const cardsList = document.getElementById('upload-cards-list');
+
+// Global map: cardId -> { xhr, file, cancelled }
+const activeUploads = new Map();
+let cardCounter = 0;
+let serverFilesCount = {{ files|length }};
+
+function formatBytes(bytes) {
+  if (!bytes || bytes <= 0) return '0 B';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function formatSpeed(bytesPerSec) {
+  if (bytesPerSec <= 0 || !isFinite(bytesPerSec)) return '0 KB/s';
+  if (bytesPerSec < 1024) return bytesPerSec.toFixed(0) + ' B/s';
+  if (bytesPerSec < 1024 * 1024) return (bytesPerSec / 1024).toFixed(1) + ' KB/s';
+  return (bytesPerSec / (1024 * 1024)).toFixed(1) + ' MB/s';
+}
+
+function enqueueFiles(files) {
+  files.forEach(file => uploadFile(file));
+}
+
+function createCard(cardId, file) {
+  const card = document.createElement('div');
+  card.className = 'upload-progress-card';
+  card.id = 'card-' + cardId;
+  card.innerHTML = `
+    <div class="upload-progress-header">
+      <div class="upload-progress-title">
+        <span class="upload-spinner" id="spinner-${cardId}"></span>
+        <span class="file-label" title="${file.name}">${file.name}</span>
+      </div>
+      <button type="button" class="btn-cancel" id="cancel-btn-${cardId}"
+              onclick="cancelSingleUpload(${cardId})">Cancel</button>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="bar-${cardId}"></div>
+    </div>
+    <div class="upload-progress-meta" id="meta-${cardId}">
+      0% &middot; 0 KB/s &middot; ${formatBytes(file.size)}
+    </div>
+  `;
+  cardsList.appendChild(card);
+  return card;
+}
+
+function removeCardSmooth(card) {
+  if (!card) return;
+  card.style.transition = 'opacity 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease';
+  card.style.opacity    = '0';
+  card.style.maxHeight  = card.offsetHeight + 'px'; // freeze current height first
+  requestAnimationFrame(() => {
+    card.style.maxHeight = '0';
+    card.style.marginTop = '0';
+    card.style.paddingTop = '0';
+    card.style.paddingBottom = '0';
+  });
+  setTimeout(() => card.remove(), 500);
+}
+
+function setCardDone(cardId) {
+  const card   = document.getElementById('card-' + cardId);
+  const bar    = document.getElementById('bar-' + cardId);
+  const meta   = document.getElementById('meta-' + cardId);
+  const spinner = document.getElementById('spinner-' + cardId);
+  const btn    = document.getElementById('cancel-btn-' + cardId);
+  if (card)    card.classList.add('done-card');
+  if (bar)   { bar.style.width = '100%'; bar.classList.add('success'); }
+  if (meta)    meta.textContent = 'Uploaded ✓';
+  if (spinner) spinner.style.display = 'none';
+  if (btn)     btn.style.display = 'none';
+  // Collapse and remove after 3 s
+  setTimeout(() => removeCardSmooth(card), 3000);
+}
+
+function setCardError(cardId, msg) {
+  const card   = document.getElementById('card-' + cardId);
+  const bar    = document.getElementById('bar-' + cardId);
+  const meta   = document.getElementById('meta-' + cardId);
+  const spinner = document.getElementById('spinner-' + cardId);
+  const btn    = document.getElementById('cancel-btn-' + cardId);
+  if (card)    card.classList.add('error-card');
+  if (bar)   { bar.classList.add('error'); }
+  if (meta)    meta.textContent = msg;
+  if (spinner) spinner.style.display = 'none';
+  if (btn)     btn.style.display = 'none';
+  // Collapse and remove after 6 s (more time to read the error)
+  setTimeout(() => removeCardSmooth(card), 6000);
+}
+
+function setCardCancelled(cardId) {
+  const card   = document.getElementById('card-' + cardId);
+  const meta   = document.getElementById('meta-' + cardId);
+  const spinner = document.getElementById('spinner-' + cardId);
+  const btn    = document.getElementById('cancel-btn-' + cardId);
+  if (card)    card.classList.add('cancelled-card');
+  if (meta)    meta.textContent = 'Cancelled';
+  if (spinner) spinner.style.display = 'none';
+  if (btn)     btn.style.display = 'none';
+  // Collapse and remove after 2 s
+  setTimeout(() => removeCardSmooth(card), 2000);
+}
+
+let lastFilesFingerprint = {{ files|tojson }}.map(f => f.name + ':' + f.size).join('|');
+
+function pollFilesSilently() {
+  if (document.hidden) return;
+  fetch('/api/files', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(r => r.json())
+    .then(data => {
+      const files = data.files || [];
+      const currentFp = files.map(f => f.name + ':' + f.size).join('|');
+      if (currentFp !== lastFilesFingerprint) {
+        lastFilesFingerprint = currentFp;
+        renderFileList(files);
+      }
+    })
+    .catch(() => {});
+}
+
+setInterval(pollFilesSilently, 2500);
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    pollFilesSilently();
+  }
+});
+
+function refreshFileList() {
+  // Fetch updated file list from the server and patch the DOM in place —
+  // no full page reload, so other ongoing uploads keep running.
+  fetch('/api/files', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(r => r.json())
+    .then(data => {
+      const files = data.files || [];
+      lastFilesFingerprint = files.map(f => f.name + ':' + f.size).join('|');
+      renderFileList(files);
+    })
+    .catch(() => {
+      // Fallback: safe full reload (all uploads should be done by this point in
+      // normal use, but it's the worst case safety net)
+      location.reload();
+    });
+}
+
+const IMAGE_EXTS_INLINE = ['jpg','jpeg','png','gif','webp','bmp','svg'];
+const VIDEO_EXTS_INLINE = ['mp4','webm','mov','mkv','avi'];
+
+function renderFileList(files) {
+  // Target the file-list section
+  let fileSection = document.getElementById('dynamic-file-section');
+  const panelFiles = document.getElementById('panel-files');
+
+  if (!fileSection) {
+    // Create a wrapper below the upload section
+    fileSection = document.createElement('div');
+    fileSection.id = 'dynamic-file-section';
+    panelFiles.appendChild(fileSection);
+  }
+
+  if (!files.length) {
+    fileSection.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon" style="margin-bottom:14px;opacity:0.6;">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <div>No files on the server</div>
+        <div style="display:flex;gap:6px;align-items:center;margin-top:14px;">
+          <button type="button" class="btn btn-refresh pc-only" onclick="openFolder()" title="Open uploads folder in Explorer">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+            Open folder
+          </button>
+          <button type="button" class="btn btn-refresh" onclick="location.reload()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+            </svg>
+            Refresh list
+          </button>
+        </div>
+      </div>`;
+    serverFilesCount = 0;
+    updateDropZoneState();
+    updateFileCount(0);
+    return;
+  }
+
+  const isMobile = {{ 'true' if mobile else 'false' }};
+  const dlLabel  = isMobile ? '\u2193 Download' : '\u2193 Move to Downloads';
+
+  const rows = files.map(f => {
+    let thumb = '';
+    if (IMAGE_EXTS_INLINE.includes(f.ext)) {
+      thumb = `<img src="/preview/${encodeURIComponent(f.name)}" loading="lazy" alt="${esc(f.name)}" />`;
+    } else if (VIDEO_EXTS_INLINE.includes(f.ext)) {
+      thumb = `<video src="/preview/${encodeURIComponent(f.name)}#t=0.5" muted preload="metadata"></video>`;
+    } else {
+      thumb = `<span class="ext-badge">${f.ext || '\u2014'}</span>`;
+    }
+    return `
+      <div class="file-item">
+        <div class="file-thumb" onclick="openPreview('${esc(f.name)}','${esc(f.ext)}')">${thumb}</div>
+        <div class="file-info">
+          <div class="file-name" title="${esc(f.name)}">${esc(f.name)}</div>
+          <div class="file-meta">
+            <span>${esc(f.size_str)}</span>
+            <span>${(f.ext||'File').toUpperCase()}</span>
+          </div>
+        </div>
+        <div class="file-actions">
+          <a href="/download/${encodeURIComponent(f.name)}" class="btn">${dlLabel}</a>
+          <button type="button" class="btn btn-danger" onclick="deleteFile('${esc(f.name)}')" title="Delete file">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+
+  fileSection.innerHTML = `
+    <div class="section-header">
+      <span class="section-title">Server files</span>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button type="button" class="btn btn-refresh pc-only" onclick="openFolder()" title="Open uploads folder in Explorer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Open folder
+        </button>
+        <button type="button" class="btn btn-refresh" onclick="location.reload()" title="Refresh list">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+          </svg>
+          Refresh
+        </button>
+        <button type="button" class="btn btn-danger" style="font-size:11px;padding:5px 10px;"
+                onclick="deleteAllFiles()" title="Delete all uploaded files">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+          Delete all
+        </button>
+      </div>
+    </div>
+    <div class="file-list">${rows}</div>`;
+
+  serverFilesCount = files.length;
+  lastFilesFingerprint = files.map(f => f.name + ':' + f.size).join('|');
+  updateDropZoneState();
+  updateFileCount(files.length);
+}
+
+function updateFileCount(n) {
+  const el = document.querySelector('.file-count');
+  if (el) el.textContent = n + (n === 1 ? ' file' : ' files');
+}
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/"/g,'&quot;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+function updateDropZoneState() {
+  const groupEl = document.getElementById('upload-group');
+  const countLabel = document.getElementById('upload-count-label');
+  const dropZone = document.getElementById('drop-zone');
+  const uploadTitle = document.getElementById('upload-title');
+  const uploadingCount = activeUploads.size;
+
+  if (uploadingCount > 0) {
+    if (groupEl) groupEl.style.display = 'block';
+    if (countLabel) countLabel.textContent = `Active uploads (${uploadingCount})`;
+  } else {
+    if (groupEl) groupEl.style.display = 'none';
+  }
+
+  // Small button if there are files on server OR files actively uploading
+  // Big area ONLY when 0 server files and 0 uploading files
+  const shouldBeSmall = (serverFilesCount > 0) || (uploadingCount > 0);
+
+  if (dropZone) {
+    if (shouldBeSmall) {
+      dropZone.classList.add('compressed');
+      if (uploadTitle) {
+        uploadTitle.textContent = uploadingCount > 0 ? '+ Add more files' : '+ Upload files';
+      }
+    } else {
+      dropZone.classList.remove('compressed');
+      if (uploadTitle) {
+        uploadTitle.textContent = 'Upload files';
+      }
+    }
+  }
+}
+const updateCancelAllVisibility = updateDropZoneState;
+
+function cancelAllUploads() {
+  if (!activeUploads.size) return;
+  if (!confirm('Are you sure you want to cancel all active uploads?')) return;
+  const toCancel = Array.from(activeUploads.keys());
+  toCancel.forEach(cardId => cancelSingleUpload(cardId));
+}
+
+function uploadFile(file) {
+  const cardId = ++cardCounter;
+  createCard(cardId, file);
+
+  const upload = { xhr: null, file, cancelled: false };
+  activeUploads.set(cardId, upload);
+  updateCancelAllVisibility();
+
+  const formData = new FormData();
+  formData.append('files', file);
+
+  const xhr = new XMLHttpRequest();
+  upload.xhr = xhr;
+  xhr.open('POST', '/upload');
+  xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+  let lastLoaded = 0;
+  let lastTime   = performance.now();
+  let speed      = 0;
+
+  xhr.upload.onprogress = e => {
+    if (!e.lengthComputable) return;
+    const now       = performance.now();
+    const timeDelta = (now - lastTime) / 1000;
+    if (timeDelta >= 0.25) {
+      speed      = (e.loaded - lastLoaded) / timeDelta;
+      lastLoaded = e.loaded;
+      lastTime   = now;
+    }
+    const pct  = Math.min(100, Math.round((e.loaded / e.total) * 100));
+    const bar  = document.getElementById('bar-' + cardId);
+    const meta = document.getElementById('meta-' + cardId);
+    if (bar)  bar.style.width = pct + '%';
+    if (meta) meta.textContent =
+      `${pct}% \u00b7 ${formatSpeed(speed)} \u00b7 ${formatBytes(e.loaded)} / ${formatBytes(file.size)}`;
+  };
+
+  xhr.onload = () => {
+    activeUploads.delete(cardId);
+    updateCancelAllVisibility();
+    if (upload.cancelled) return;
+    if (xhr.status >= 200 && xhr.status < 300) {
+      setCardDone(cardId);
+      refreshFileList(); // update list without killing other uploads
+    } else {
+      setCardError(cardId, `Error ${xhr.status}`);
+    }
+  };
+
+  xhr.onerror = () => {
+    activeUploads.delete(cardId);
+    updateCancelAllVisibility();
+    setCardError(cardId, 'Network error');
+  };
+
+  xhr.onabort = () => {
+    activeUploads.delete(cardId);
+    updateCancelAllVisibility();
+    setCardCancelled(cardId);
+  };
+
+  xhr.send(formData);
+}
+
+function cancelSingleUpload(cardId) {
+  const upload = activeUploads.get(cardId);
+  if (!upload) return;
+  upload.cancelled = true;
+  upload.xhr.abort();
+}
+
+// ---- Open Uploads Folder ----
+function openFolder() {
+  fetch('/open-folder', {
+    method: 'POST',
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  });
+}
+
+// ---- Delete File (direct fetch, zero warnings/prompts) ----
+function deleteFile(name) {
+  fetch('/delete/' + encodeURIComponent(name), {
+    method: 'POST',
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  }).then(() => refreshFileList())
+    .catch(() => location.reload());
+}
+
+// ---- Delete All Files ----
+function deleteAllFiles() {
+  if (!confirm('Are you sure you want to delete all files from the server?')) return;
+  fetch('/delete-all', {
+    method: 'POST',
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  }).then(() => refreshFileList())
+    .catch(() => location.reload());
+}
+
+// ---- Modal preview ----
+const IMAGE_EXTS = ['jpg','jpeg','png','gif','webp','bmp','svg'];
+const VIDEO_EXTS = ['mp4','webm','mov','mkv','avi'];
+
+function openPreview(name, ext) {
+  if (!IMAGE_EXTS.includes(ext) && !VIDEO_EXTS.includes(ext)) return;
+  const modal = document.getElementById('modal');
+  const content = document.getElementById('modal-content');
+  const url = '/preview/' + encodeURIComponent(name);
+
+  if (IMAGE_EXTS.includes(ext)) {
+    content.innerHTML = `<img src="${url}" alt="${name}" />`;
+  } else {
+    content.innerHTML = `<video src="${url}" controls autoplay style="max-width:90vw;max-height:88vh;border-radius:8px;"></video>`;
+  }
+  modal.classList.add('open');
+}
+
+function closeModal() {
+  const modal = document.getElementById('modal');
+  document.getElementById('modal-content').innerHTML = '';
+  modal.classList.remove('open');
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal();
+    closeQrModal();
+  }
+});
+
+// ---- QR codes ----
+{% if not mobile %}
+window.addEventListener('load', () => {
+  if (typeof QRCode === 'undefined') return;
+
+  const opts = () => ({
+    width: 140, height: 140,
+    colorDark: '#111111',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  const wifiText = {{ wifi_qr|tojson }};
+  const wifiEl = document.getElementById('qr-wifi');
+  if (wifiEl && wifiText) {
+    new QRCode(wifiEl, {
+      text: wifiText,
+      ...opts()
+    });
+  } else if (wifiEl) {
+    wifiEl.innerHTML = '<span style="color:var(--text-3);font-size:12px;display:flex;align-items:center;justify-content:center;height:100%;">Hotspot offline</span>';
+  }
+
+  new QRCode(document.getElementById('qr-app'), {
+    text: {{ app_url|tojson }},
+    ...opts()
+  });
+});
+{% endif %}
+</script>
+</body>
+</html>

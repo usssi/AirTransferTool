@@ -1,0 +1,5 @@
+flask==3.1.0
+qrcode[pil]==8.0
+Pillow==11.1.0
+pywebview==5.4
+pyinstaller==6.11.1
