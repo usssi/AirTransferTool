@@ -52,6 +52,7 @@ def get_hotspot_ip():
         result = subprocess.run(
             ["ipconfig"],
             capture_output=True, text=True, timeout=5,
+            encoding="latin1", errors="ignore",
             creationflags=subprocess.CREATE_NO_WINDOW
         )
         if HOTSPOT_IP in result.stdout:
@@ -124,6 +125,7 @@ def index():
         app_url=app_url,
         wifi_qr=wifi_qr,
         ssid=ssid,
+        password=password,
         hotspot_on=hotspot_on,
         mobile=mobile
     )

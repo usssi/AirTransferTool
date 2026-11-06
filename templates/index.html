@@ -599,11 +599,88 @@
       word-break: break-all;
       width: 100%;
     }
+    .qr-info-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .qr-info-label {
+      color: var(--text-3);
+      font-size: 11px;
+    }
     .qr-meta strong {
       color: var(--text);
-      display: block;
       font-size: 12px;
       word-break: break-all;
+    }
+    .qr-meta code {
+      font-family: var(--font-mono);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      color: var(--text);
+      user-select: all;
+    }
+    .qr-subtext {
+      display: block;
+      margin-top: 5px;
+      font-size: 10px;
+      color: var(--text-3);
+    }
+    .modal-steps {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11.5px;
+      color: var(--text-2);
+    }
+    .step-num {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-size: 10px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .app-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px 0 28px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-3);
+    }
+    .app-footer a {
+      color: var(--text-2);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .app-footer a:hover {
+      color: var(--text);
+      text-decoration: underline;
+    }
+    .footer-sep {
+      color: var(--border2);
     }
 
     /* ------------------------------------------------------------------ */
@@ -745,14 +822,14 @@
     <div class="header-right">
       <span class="file-count">{{ files|length }} file{{ 's' if files|length != 1 else '' }}</span>
       {% if not mobile %}
-      <button type="button" class="btn-pill pc-only" onclick="openQrModal()" title="Show network QR codes">
+      <button type="button" class="btn-pill pc-only" onclick="openQrModal()" title="Connect iPhone & Help">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="7"></rect>
           <rect x="14" y="3" width="7" height="7"></rect>
           <rect x="14" y="14" width="7" height="7"></rect>
           <rect x="3" y="14" width="7" height="7"></rect>
         </svg>
-        <span>QR · Connect</span>
+        <span>Connect & Help</span>
       </button>
       {% endif %}
     </div>
@@ -884,44 +961,66 @@
     </div>
     {% endif %}
     </div><!-- /#dynamic-file-section -->
-
   </main>
+
+  <!-- ================================================================== -->
+  <!-- FOOTER                                                             -->
+  <!-- ================================================================== -->
+  <footer class="app-footer">
+    <a href="https://github.com/usssi/AirTransferTool/releases/tag/v1.0.0" target="_blank" rel="noopener">v1.0.0</a>
+    <span class="footer-sep">•</span>
+    <span>Developed by <a href="https://ussi.dev" target="_blank" rel="noopener">ussi.dev</a></span>
+  </footer>
 </div>
 
 {% if not mobile %}
 <!-- ================================================================== -->
-<!-- QR POPUP MODAL                                                     -->
+<!-- QR & HELP POPUP MODAL                                              -->
 <!-- ================================================================== -->
 <div id="qr-modal" class="modal-backdrop" onclick="closeQrModal()">
   <div class="modal-card" onclick="event.stopPropagation()">
     <div class="modal-card-header">
-      <span style="font-size: 13px; font-weight: 600; color: var(--text);">Connect iPhone</span>
+      <span style="font-size: 13px; font-weight: 600; color: var(--text);">Connect & Quick Guide</span>
       <button type="button" class="modal-card-close" onclick="closeQrModal()">✕</button>
     </div>
     <div class="qr-grid">
       <div class="qr-card">
-        <span class="qr-label">Connect to network</span>
+        <span class="qr-label">1. Connect to Wi-Fi</span>
         <div class="qr-canvas-wrap" id="qr-wifi"></div>
         <div class="qr-meta">
-          <strong>{{ ssid }}</strong>
-          Scan with iPhone camera
+          <div class="qr-info-row">
+            <span class="qr-info-label">Network:</span>
+            <strong>{{ ssid }}</strong>
+          </div>
+          {% if password %}
+          <div class="qr-info-row">
+            <span class="qr-info-label">Password:</span>
+            <code>{{ password }}</code>
+          </div>
+          {% endif %}
+          <span class="qr-subtext">Scan with iPhone camera or enter manually</span>
         </div>
       </div>
       <div class="qr-card">
-        <span class="qr-label">Open app</span>
+        <span class="qr-label">2. Open Web Portal</span>
         <div class="qr-canvas-wrap" id="qr-app"></div>
         <div class="qr-meta">
-          <strong>{{ app_url }}</strong>
-          Once connected to WiFi
+          <div class="qr-info-row">
+            <span class="qr-info-label">URL:</span>
+            <strong>{{ app_url }}</strong>
+          </div>
+          <span class="qr-subtext">Once connected to Wi-Fi</span>
         </div>
       </div>
+    </div>
+    <div class="modal-steps">
+      <div class="step-item"><span class="step-num">1</span> Scan Wi-Fi QR with iPhone Camera to join network</div>
+      <div class="step-item"><span class="step-num">2</span> Scan Portal QR to open AirTransfer in Safari</div>
+      <div class="step-item"><span class="step-num">3</span> Upload photos/files from phone & click <i>Move to Downloads</i> on PC</div>
     </div>
   </div>
 </div>
 {% endif %}
-
-  </main>
-</div>
 
 <!-- ================================================================== -->
 <!-- MODAL PREVIEW                                                      -->
